@@ -21,7 +21,7 @@ type Node struct {
 }
 
 func NewNode(key int) *Node {
-	return &Node{key: key, size: 1, priority: RandInt(), left: nil, right: nil}
+	return &Node{key: key, size: 1, priority: RandInt(math.MaxInt32), left: nil, right: nil}
 }
 
 func (targetNode *Node) ReCalculate() {
@@ -62,8 +62,8 @@ func Insert(root *Node, newNode *Node) *Node {
 		return newNode
 	}
 
-	if newNode.priority < root.priority {
-		if newNode.key > root.key {
+	if newNode.priority <= root.priority {
+		if newNode.key >= root.key {
 			return root.SetRight(Insert(root.right, newNode))
 		} else {
 			return root.SetLeft(Insert(root.left, newNode))
@@ -82,6 +82,10 @@ func split(root *Node, key int) (*Node, *Node) {
 	}
 
 	if key > root.key {
+		newLeft, newRight := split(root.right, key)
+		root.SetRight(newLeft)
+		return root, newRight
+		/*
 		right := root.right
 		if right == nil {
 			return root, nil
@@ -99,7 +103,12 @@ func split(root *Node, key int) (*Node, *Node) {
 			// 원하는 위치를 찾은 경우
 			return root, right
 		}
+		*/
 	} else {
+		newLeft, newRight := split(root.left, key)
+		root.SetLeft(newRight)
+		return newLeft, root
+		/*
 		left := root.left
 		if left == nil {
 			return nil, root
@@ -117,6 +126,7 @@ func split(root *Node, key int) (*Node, *Node) {
 			// 원하는 위치를 찾은 경우
 			return left, root
 		}
+		*/
 	}
 }
 
@@ -157,15 +167,15 @@ func merge(a *Node, b *Node) (newRoot *Node) {
 	}
 }
 
-func RandInt() int {
-	return rand.Intn(math.MaxInt32)
+func RandInt(max int) int {
+	return rand.Intn(max)
 }
 
 func TestTreapInsert() ([]int, *Node) {
 	keys := make([]int, 0)
 	nodes := make([]*Node, 0)
 	for i := 0; i < 30; i++ {
-		newKey := RandInt()
+		newKey := RandInt(100)
 		newNode := NewNode(newKey)
 		fmt.Printf("val: %v\n", newNode.key)
 		nodes = append(nodes, newNode)
@@ -194,7 +204,7 @@ func traverse(root *Node) {
 		return
 	}
 
-	fmt.Printf("key: %v\n", root.key)
 	traverse(root.left)
+	fmt.Printf("key: %8v, priority: %14v\n", root.key, root.priority)
 	traverse(root.right)
 }
